@@ -1,0 +1,33 @@
+{
+    "name": "fract-all",
+    "private": true,
+    "version": "0.1.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vue-tsc -b && vite build",
+        "preview": "vite preview",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "format": "prettier --write .",
+        "typecheck": "vue-tsc --noEmit"
+    },
+    "dependencies": {
+        "primeicons": "^7.0.0",
+        "primevue": "^4.4.1",
+        "vue": "^3.5.11"
+    },
+    "devDependencies": {
+        "@types/node": "^22.7.7",
+        "@typescript-eslint/eslint-plugin": "^7.18.0",
+        "@typescript-eslint/parser": "^7.18.0",
+        "@vitejs/plugin-vue": "^5.1.4",
+        "eslint": "^8.57.0",
+        "eslint-config-prettier": "^9.1.0",
+        "eslint-plugin-vue": "^9.29.0",
+        "prettier": "^3.3.3",
+        "typescript": "^5.6.3",
+        "vite": "^5.4.10",
+        "vue-tsc": "^2.1.6"
+    }
+}
