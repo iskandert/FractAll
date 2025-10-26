@@ -10,62 +10,62 @@
 
 Ниже — подробное дерево файлов/папок проекта с комментариями **где что лежит и зачем**. Дерево отражает выбранную архитектуру: **чистые функции + «команды как данные»**, воркер-пайплайн, flat-буферы для heavy задач, Pinia с `shallowRef` и чёткими TS-контрактами/валидаторами.
 
+**Текущий статус:** Проект находится на **Этапе 1 — Domain Core**. Многие модули отмечены как `[TODO]` и будут реализованы на последующих этапах.
+
 ```
-/package.json
-/tsconfig.json
-/.eslintrc.js
-/.prettierrc
-/.gitignore
 /README.md
 /src/
   main.ts
   app.vue
-  router/
+  cli.ts                                     # CLI для тестирования на этапе 1
+  router/                                    # [TODO: этап 2]
     index.ts
     routes.ts
   features/
     l-system/
-      index.ts                              # точка экспорта feature (service factory)
-      pages/
+      index.ts                              # [TODO: этап 2] точка экспорта feature (service factory)
+      pages/                                # [TODO: этап 2]
         LSystemPage.vue
-      components/
+      components/                           # [TODO: этап 2]
         Form.vue
         GeometryView.vue
         ViewsGallery.vue
         RendererToggle.vue
         SettingsPresetPicker.vue
-      composables/
+      composables/                          # [TODO: этап 2]
         useFormState.ts                      # локальное управление формой + validation (zod)
         useGeometryDrawer.ts                 # thin adapter между store/ref и renderer
-      services/
+      services/                             # [TODO: этап 3-4]
         lsystem-service.ts                   # high-level facade: decide worker vs sync, caching
         worker-client.ts                     # клиент-обёртка для WebWorker (requestId, cancel, progress)
         migration.ts                         # миграции настроек версий
       domain/
+        index.ts                             # экспорт публичного API domain слоя
         core/
+          index.ts                           # экспорт core функций
           generatePattern.ts                 # pure function: pattern generation (chunked, abortable)
           patternToCommands.ts               # pure function: interprets pattern -> Command[]
           commands.ts                        # фабрики/утилиты работы с командами
-          geometryBuilder.ts                 # pure function(s) to build flat buffer or arrays (chunked)
-          normalizer.ts                       # bbox calc, normalization helpers
+          geometryBuilder.ts                 # pure function(s) to build flat buffer or arrays (chunked) [TODO: этап 5]
+          normalizer.ts                      # bbox calc, normalization helpers [TODO: этап 5]
         types.ts                             # TS контракты (Command, LSystemSettings, FlatVertices...)
         schemas.ts                           # zod schemas, валидаторы соответствующих DTO
-      workers/
+      workers/                              # [TODO: этап 4]
         lsystem.worker.ts                    # сам воркер (entry) — принимает запросы, отвечает transferables
         worker-utils.ts                      # helpers для воркера (serialize/deserialize, chunking)
-      store/
+      store/                                # [TODO: этап 3]
         index.ts                             # pinia module (actions call services, state uses shallowRef)
-      i18n/
+      i18n/                                 # [TODO: этап 7]
         en.ts
         ru.ts
   shared/
     types/
       index.ts                               # общие типы, переиспользуемые (Point, BBox...)
     utils/
-      uid.ts                                 # uuid helper
       math.ts                                # точечные util функции (deg->rad и пр.)
-      buffer-utils.ts                        # helpers для FlatVertices / transfers
-    renderers/
+      uid.ts                                 # [TODO: этап 3] uuid helper
+      buffer-utils.ts                        # [TODO: этап 5] helpers для FlatVertices / transfers
+    renderers/                              # [TODO: этап 2-5]
       IRenderer.ts                           # интерфейс рендерера (render/reset/resize)
       canvas/
         CanvasPolylineRenderer.ts            # реализация для canvas (consumes FlatVertices or VerticesArray)
@@ -73,7 +73,7 @@
         WebGLRenderer.ts                      # (опционально) webgl renderer
       svg/
         SVGRenderer.ts                        # svg exporter / renderer (for export + thumbnails)
-  common/
+  common/                                   # [TODO: этап 3+]
     i18n/
       index.ts                               # инициализация i18n (vue-i18n)
     api/
@@ -83,44 +83,63 @@
       main.css
   tests/
     domain/
-      generatePattern.test.ts
-      geometryBuilder.test.ts
+      generatePattern.test.ts              # unit-тесты генерации паттерна
+      patternToCommands.test.ts            # unit-тесты преобразования в команды
+      commands.test.ts                     # unit-тесты фабрик команд
+      geometryBuilder.test.ts              # [TODO: этап 5]
     integration/
-      worker.integration.test.ts
-  tools/
+      worker.integration.test.ts           # [TODO: этап 4]
+  tools/                                    # [TODO: этап 4]
     scripts/
       build-worker.sh
   docs/
-    architecture.md
-    api-types.md
-    developer-guide.md
+    context/
+      CONTEXT.md                           # архитектура и структура проекта
+      ROADMAP.md                           # план развития проекта
+      TYPES_REFERENCE.md                   # справочник типов
+      USER_FLOW.md                         # пользовательские сценарии
+    architecture.md                        # [TODO]
+    api-types.md                           # [TODO]
+    developer-guide.md                     # [TODO]
 ```
 
 ---
 
 # Пояснения по ключевым элементам (папки/файлы)
 
+## `src/cli.ts` — CLI для отладки
+
+Интерактивный CLI для отладки domain core функций. Позволяет:
+
+- Вводить axiom и rules для генерации L-system паттерна
+- Конвертировать паттерн в команды
+- Видеть результаты без UI
+
+Запуск: `npm run dev:cli`
+
+---
+
 ## `src/features/l-system/` — фича-модуль
 
 Содержит всю логику L-системы, UI-компоненты и glue-code (services). Фича-ориентированная организация делает легко добавлять новые модули.
 
-### `pages/LSystemPage.vue`
+### `pages/LSystemPage.vue` [TODO: этап 2]
 
 Страница/роут для модуля. Собирает `Form`, `GeometryView`, `ViewsGallery`. Не содержит доменной логики.
 
-### `components/Form.vue`
+### `components/Form.vue` [TODO: этап 2]
 
 UI формы. Локальная форма (reactive) + валидация через `zod`/`schemas.ts`. На `Apply` вызывает action в Pinia, передавая валидный `LSystemSettings`.
 
-### `components/GeometryView.vue`
+### `components/GeometryView.vue` [TODO: этап 2]
 
 Только отображает переданный `FlatVertices` или `VerticesArray`. Ничего не вычисляет — renderer-адаптер (useGeometryDrawer) делает привязку.
 
-### `composables/useFormState.ts`
+### `composables/useFormState.ts` [TODO: этап 2]
 
 Локальный state + `zod`-валидация + preview helper. Возвращает DTO `LSystemSettings` и методы `apply()`, `preview()`, `reset()`.
 
-### `services/lsystem-service.ts`
+### `services/lsystem-service.ts` [TODO: этап 3-4]
 
 High-level фасад:
 
@@ -129,7 +148,7 @@ High-level фасад:
 - Переходит на `worker-client` для heavy задач.
   **Почему здесь:** централизует политику (worker vs sync), упрощает store.
 
-### `services/worker-client.ts`
+### `services/worker-client.ts` [TODO: этап 4]
 
 Обёртка над `new Worker(...)`, реализует:
 
@@ -138,7 +157,7 @@ High-level фасад:
 - Поддержка `onProgress(id, callback)`, `onResult(id, callback)` и корректной передачи Transferable buffers.
   **Важно:** имеет маппинг id→resolve/reject и обрабатывает неожиданные ошибки.
 
-### `services/migration.ts`
+### `services/migration.ts` [TODO: этап 3]
 
 Функции миграции старых `LSystemSettings` → актуальной версии. Вызывается при импорте/приёме данных.
 
@@ -165,7 +184,7 @@ High-level фасад:
 - Утилиты: фабрики команд, сериализация команд, хеширование, sane defaults.
 - Полезно экспортировать `CommandFactory` для UI (Form -> preview).
 
-### `geometryBuilder.ts`
+### `geometryBuilder.ts` [TODO: этап 5]
 
 - Функция(и) принимающие `Command[]` (или stream of commands) и возвращающие:
     - `VerticesArray` (удобный формат) или
@@ -174,7 +193,7 @@ High-level фасад:
 - Работает chunked; поддерживает `maxPoints` и AbortSignal.
 - Оптимизирована для минимизации аллокаций: заполняет заранее выделенный `Float32Array` при необходимости.
 
-### `normalizer.ts`
+### `normalizer.ts` [TODO: этап 5]
 
 - Калькуляция BBox, нормализация координат под viewport. Нужно чтобы renderer применял transform (renderer decides final mapping).
 
@@ -201,7 +220,7 @@ Zod-схемы, зеркалящие TS-типы. Используются:
 
 ---
 
-## `src/features/l-system/workers/lsystem.worker.ts`
+## `src/features/l-system/workers/lsystem.worker.ts` [TODO: этап 4]
 
 Файл воркера (entry). Что делает:
 
@@ -213,7 +232,7 @@ Zod-схемы, зеркалящие TS-типы. Используются:
 
 ---
 
-## `src/features/l-system/store/index.ts` (Pinia)
+## `src/features/l-system/store/index.ts` (Pinia) [TODO: этап 3]
 
 State design:
 
@@ -236,7 +255,7 @@ Actions:
 
 ---
 
-## `src/shared/renderers/` — абстракция и реализации
+## `src/shared/renderers/` — абстракция и реализации [TODO: этап 2-5]
 
 `IRenderer.ts` — контракт
 
@@ -246,7 +265,7 @@ Actions:
 
 ---
 
-## `src/common/api/export.ts`
+## `src/common/api/export.ts` [TODO: этап 6]
 
 Экспорт/импорт результатов и настроек:
 
@@ -263,18 +282,24 @@ Actions:
 
 ## `src/tests/` — тесты
 
-- `domain/generatePattern.test.ts` — unit tests for rewriting rules, edge cases.
-- `domain/geometryBuilder.test.ts` — tests for flat buffer output, offsets correctness.
-- `integration/worker.integration.test.ts` — mocks for worker messages + transferables (node worker threads or jsdom worker mocks).
+- `domain/generatePattern.test.ts` — unit тесты для L-system переписывания, edge cases.
+- `domain/patternToCommands.test.ts` — unit тесты для преобразования паттерна в команды.
+- `domain/commands.test.ts` — unit тесты для фабрик команд.
+- `domain/geometryBuilder.test.ts` — [TODO: этап 5] тесты для flat buffer output, offsets correctness.
+- `integration/worker.integration.test.ts` — [TODO: этап 4] mocks для worker messages + transferables.
 - CI запускает unit+integration tests.
 
 ---
 
 ## `tools/` и `docs/`
 
-- `tools/scripts/build-worker.sh` — сборка воркера в отдельный bundle (Rollup/ESBuild), чтобы исключить размер основного бандла и избежать inline worker преобразований.
-- `docs/architecture.md` — поясняет design decisions, формат команд, trade-offs.
-- `docs/api-types.md` — автогенерируемая документация типов (можно генерить из TS types).
+- `tools/scripts/build-worker.sh` — [TODO: этап 4] сборка воркера в отдельный bundle (Rollup/ESBuild), чтобы исключить размер основного бандла и избежать inline worker преобразований.
+- `docs/context/CONTEXT.md` — архитектура и структура проекта (этот файл).
+- `docs/context/ROADMAP.md` — план развития проекта по этапам.
+- `docs/context/TYPES_REFERENCE.md` — справочник по типам данных.
+- `docs/context/USER_FLOW.md` — пользовательские сценарии работы с приложением.
+- `docs/architecture.md` — [TODO] детальное описание design decisions, формат команд, trade-offs.
+- `docs/api-types.md` — [TODO] автогенерируемая документация типов.
 
 ---
 
