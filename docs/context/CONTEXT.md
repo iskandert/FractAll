@@ -10,7 +10,7 @@
 
 Ниже — подробное дерево файлов/папок проекта с комментариями **где что лежит и зачем**. Дерево отражает выбранную архитектуру: **чистые функции + «команды как данные»**, воркер-пайплайн, flat-буферы для heavy задач, Pinia с `shallowRef` и чёткими TS-контрактами/валидаторами.
 
-**Текущий статус:** Проект находится на **Этапе 1 — Domain Core**. Многие модули отмечены как `[TODO]` и будут реализованы на последующих этапах.
+**Текущий статус:** ✅ **Этап 1 — Domain Core** завершен. Реализованы и протестированы все core функции: generatePattern, patternToCommands, commands, generateGeometry. Следующий этап — UI + Canvas. Многие модули отмечены как `[TODO]` и будут реализованы на последующих этапах.
 
 ```
 /README.md
@@ -46,7 +46,7 @@
           generatePattern.ts                 # pure function: pattern generation (chunked, abortable)
           patternToCommands.ts               # pure function: interprets pattern -> Command[]
           commands.ts                        # фабрики/утилиты работы с командами
-          geometryBuilder.ts                 # pure function(s) to build flat buffer or arrays (chunked) [TODO: этап 5]
+          generateGeometry.ts                # pure function: builds geometry (PathSegment[]) from commands
           normalizer.ts                      # bbox calc, normalization helpers [TODO: этап 5]
         types.ts                             # TS контракты (Command, LSystemSettings, FlatVertices...)
         schemas.ts                           # zod schemas, валидаторы соответствующих DTO
@@ -60,9 +60,10 @@
         ru.ts
   shared/
     types/
-      index.ts                               # общие типы, переиспользуемые (Point, BBox...)
+      index.ts                               # общие типы, переиспользуемые
     utils/
-      math.ts                                # точечные util функции (deg->rad и пр.)
+      math.ts                                # математические функции
+      geometry.ts                            # геометрические функции
       uid.ts                                 # [TODO: этап 3] uuid helper
       buffer-utils.ts                        # [TODO: этап 5] helpers для FlatVertices / transfers
     renderers/                              # [TODO: этап 2-5]
@@ -86,7 +87,10 @@
       generatePattern.test.ts              # unit-тесты генерации паттерна
       patternToCommands.test.ts            # unit-тесты преобразования в команды
       commands.test.ts                     # unit-тесты фабрик команд
-      geometryBuilder.test.ts              # [TODO: этап 5]
+      generateGeometry.test.ts             # unit-тесты построения геометрии
+    shared/
+      math.test.ts                         # unit-тесты математических функций
+      geometry.test.ts                     # unit-тесты геометрических функций
     integration/
       worker.integration.test.ts           # [TODO: этап 4]
   tools/                                    # [TODO: этап 4]
@@ -184,14 +188,13 @@ High-level фасад:
 - Утилиты: фабрики команд, сериализация команд, хеширование, sane defaults.
 - Полезно экспортировать `CommandFactory` для UI (Form -> preview).
 
-### `geometryBuilder.ts` [TODO: этап 5]
+### `generateGeometry.ts`
 
-- Функция(и) принимающие `Command[]` (или stream of commands) и возвращающие:
-    - `VerticesArray` (удобный формат) или
-    - `FlatVertices` (coords Float32Array + offsets Uint32Array).
-
-- Работает chunked; поддерживает `maxPoints` и AbortSignal.
-- Оптимизирована для минимизации аллокаций: заполняет заранее выделенный `Float32Array` при необходимости.
+- Функция принимающая `GeometryBuilderParams` (содержит `Command[]`, настройки) и возвращающая `PathSegment[]` (массив сегментов пути, где каждый сегмент - массив точек).
+- Использует "черепашью графику": управляет позицией, углом, рисованием линий.
+- Поддерживает ветвление через стек состояний (команды push/pop).
+- Поддерживает `maxPoints` для ограничения количества точек и `minSegmentLength` для фильтрации слишком коротких сегментов.
+- Чистая архитектура: разделение на классы TurtleState, SegmentManager, GeometryBuilderState.
 
 ### `normalizer.ts` [TODO: этап 5]
 
@@ -276,18 +279,40 @@ Actions:
 
 ## `src/shared/types` и `src/features/l-system/domain/types.ts`
 
-`shared/types` — общие сущности проекта (Point, BBox), `domain/types.ts` — feature-specific. Это уменьшит дублирование.
+`shared/types` — общие сущности проекта (Point, BBox, Vector), `domain/types.ts` — feature-specific. Это уменьшит дублирование.
+
+---
+
+## `src/shared/utils/` — утилиты
+
+### `math.ts`
+
+Математические функции общего назначения.
+
+**Важно:** В проекте **все углы хранятся в градусах**, но `Math.cos/sin` работают с радианами, поэтому всегда используйте `degToRad` перед тригонометрическими функциями.
+
+### `geometry.ts`
+
+Геометрические функции.
 
 ---
 
 ## `src/tests/` — тесты
 
+### Domain тесты
 - `domain/generatePattern.test.ts` — unit тесты для L-system переписывания, edge cases.
 - `domain/patternToCommands.test.ts` — unit тесты для преобразования паттерна в команды.
 - `domain/commands.test.ts` — unit тесты для фабрик команд.
-- `domain/geometryBuilder.test.ts` — [TODO: этап 5] тесты для flat buffer output, offsets correctness.
+- `domain/generateGeometry.test.ts` — комплексные тесты построения геометрии: базовые команды, ветвление, граничные случаи, интеграционные сценарии.
+
+### Shared тесты
+- `shared/math.test.ts` — unit тесты для математических функций.
+- `shared/geometry.test.ts` — unit тесты для геометрических функций. Проверяют математическую корректность вычисления координат точек по углу и длине.
+
+### Integration тесты
 - `integration/worker.integration.test.ts` — [TODO: этап 4] mocks для worker messages + transferables.
-- CI запускает unit+integration tests.
+
+CI запускает unit+integration tests.
 
 ---
 

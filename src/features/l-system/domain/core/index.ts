@@ -5,5 +5,6 @@
  */
 
 export { generatePattern } from './generatePattern';
-export { patternToCommands } from './patternToCommands';
+export { patternToCommands } from './patternProcessing';
 export { CommandFactory, commandToString, commandsToString } from './commands';
+export { generateGeometry } from './generateGeometry';

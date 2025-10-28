@@ -4,7 +4,7 @@
 
 // TODO: Добавить импорты после установки vitest
 import { describe, it, expect } from 'vitest';
-import { patternToCommands } from '@/features/l-system/domain/core/patternToCommands';
+import { patternToCommands } from '@/features/l-system/domain/core/patternProcessing';
 import { CommandFactory } from '@/features/l-system/domain/core/commands';
 
 describe('patternToCommands', () => {

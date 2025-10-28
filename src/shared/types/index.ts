@@ -11,6 +11,18 @@ export interface Point {
 }
 
 /**
+ * 2D вектор
+ */
+export interface Vector {
+    /** Начальная точка вектора */
+    point: Point;
+    /** Угол направления в градусах (0° = вправо, 90° = вверх) */
+    angle: number;
+    /** Длина вектора */
+    length?: number;
+}
+
+/**
  * Ограничивающий прямоугольник (Bounding Box)
  */
 export interface BBox {

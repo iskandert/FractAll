@@ -84,3 +84,16 @@ export interface PatternToCommandsParams {
     pattern: string;
     commands: Record<string, Command>;
 }
+
+export type PathSegment = Readonly<Point>[];
+
+/**
+ * Параметры построения геометрии
+ */
+export interface GeometryBuilderParams {
+    commands: Command[];
+    maxPoints: number;
+    startPosition: Point;
+    startAngle: number;
+    minSegmentLength: number;
+}

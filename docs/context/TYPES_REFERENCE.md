@@ -1,17 +1,31 @@
-# Типы (TypeScript — контрактные определения)
+# Справочник типов (нереализованные)
+
+Этот файл содержит только **нереализованные** типы данных, которые будут реализованы на последующих этапах.
+
+Реализованные типы находятся в:
+- `src/features/l-system/domain/types.ts` — Command, LSystemSettings, PathSegment, GeometryBuilderParams и др.
+- `src/shared/types/index.ts` — Point, Vector, BBox и др.
+
+---
+
+## FlatVertices (Этап 5 - производительный рендеринг)
+
+Performant flat buffer формат для передачи больших геометрий:
 
 ```ts
-// Результаты: вершинный формат (два варианта)
-export type VerticesArray = readonly (readonly Point[])[]; // удобен для Vue, small/medium datasets
-
-// performant flat buffer: coords interleaved [x0,y0,x1,y1...], offsets — начало каждой полилинии
 export interface FlatVertices {
-    readonly coords: Float32Array; // length = 2 * totalPoints
+    readonly coords: Float32Array; // length = 2 * totalPoints, interleaved [x0,y0,x1,y1...]
     readonly offsets: Uint32Array; // offsets.length = number of polylines + 1 (last = totalPoints)
     readonly counts?: Uint32Array; // optional: number of points per polyline
     readonly bbox?: BBox;
 }
+```
 
+---
+
+## LSystemResult (Этап 3-5 - результаты генерации)
+
+```ts
 export interface LSystemMeta {
     readonly iterations: number;
     readonly points: number;
@@ -22,15 +36,20 @@ export interface LSystemMeta {
 export interface LSystemResult {
     readonly pattern: string;
     readonly commands?: readonly Command[]; // optional: may be omitted for huge outputs
-    readonly vertices?: VerticesArray; // optional
-    readonly flat?: FlatVertices; // optional (preferred for big datasets)
+    readonly vertices?: PathSegment[]; // optional (используется сейчас)
+    readonly flat?: FlatVertices; // optional (preferred for big datasets, этап 5)
     readonly bbox: BBox;
     readonly meta: LSystemMeta;
 }
 ```
 
+---
+
+## Worker Messages (Этап 4 - WebWorker integration)
+
+Worker ↔ Main thread сообщения (discriminated unions):
+
 ```ts
-// Worker ↔ Main thread сообщения (discriminated unions)
 export interface WorkerRequestGenerate {
     readonly type: 'generate';
     readonly id: string; // request id
@@ -89,8 +108,11 @@ export type WorkerResponse =
     | WorkerResponseError;
 ```
 
+---
+
+## Pinia Store State (Этап 3)
+
 ```ts
-// Pinia store state (shallow refs recommended)
 export type LSystemStatus = 'idle' | 'running' | 'cancelling' | 'error' | 'ready';
 
 export interface LSystemStoreState {
@@ -105,13 +127,17 @@ export interface LSystemStoreState {
 }
 ```
 
-`IRenderer.ts` — контракт:
+---
+
+## IRenderer (Этап 2-5 - рендереры)
 
 ```ts
 interface IRenderer {
-  renderFlat(fv: FlatVertices, viewport: {w:number,h:number}): void;
-  renderArray(vertices: VerticesArray, viewport: ...): void;
-  reset(): void;
-  resize(w:number,h:number): void;
+    renderFlat(fv: FlatVertices, viewport: { w: number; h: number }): void;
+    renderArray(vertices: PathSegment[], viewport: { w: number; h: number }): void;
+    reset(): void;
+    resize(w: number, h: number): void;
 }
 ```
+
+---
