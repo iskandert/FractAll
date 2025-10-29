@@ -15,5 +15,14 @@ module.exports = {
         'vue/html-self-closing': ['warn', { html: { void: 'any' } }],
         '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     },
+    overrides: [
+        {
+            // Отключаем требование многосоставных имен для компонентов в папках pages
+            files: ['**/pages/**/*.vue'],
+            rules: {
+                'vue/multi-word-component-names': 'off',
+            },
+        },
+    ],
     ignorePatterns: ['dist', 'node_modules', '*.d.ts'],
 };

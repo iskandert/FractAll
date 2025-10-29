@@ -25,13 +25,11 @@
     l-system/
       index.ts                              # [TODO: этап 2] точка экспорта feature (service factory)
       pages/                                # [TODO: этап 2]
-        LSystemPage.vue
+        main.vue
       components/                           # [TODO: этап 2]
         Form.vue
         GeometryView.vue
         ViewsGallery.vue
-        RendererToggle.vue
-        SettingsPresetPicker.vue
       composables/                          # [TODO: этап 2]
         useFormState.ts                      # локальное управление формой + validation (zod)
         useGeometryDrawer.ts                 # thin adapter между store/ref и renderer
@@ -127,7 +125,7 @@
 
 Содержит всю логику L-системы, UI-компоненты и glue-code (services). Фича-ориентированная организация делает легко добавлять новые модули.
 
-### `pages/LSystemPage.vue` [TODO: этап 2]
+### `pages/main.vue` [TODO: этап 2]
 
 Страница/роут для модуля. Собирает `Form`, `GeometryView`, `ViewsGallery`. Не содержит доменной логики.
 

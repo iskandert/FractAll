@@ -31,3 +31,46 @@ export interface BBox {
     maxX: number;
     maxY: number;
 }
+
+/**
+ * Viewport - размеры области отрисовки
+ */
+export interface Viewport {
+    width: number;
+    height: number;
+}
+
+/**
+ * Опции рендеринга
+ */
+export interface RenderOptions {
+    /** Цвет линии */
+    strokeColor?: string;
+    /** Толщина линии */
+    strokeWidth?: number;
+    /** Цвет фона */
+    backgroundColor?: string;
+    /** Отступ от краев viewport (в пикселях) */
+    padding?: number;
+}
+
+/**
+ * Трансформация координат (BBox → Viewport)
+ */
+export interface Transform {
+    /** Коэффициент масштабирования по оси X */
+    scaleX: number;
+    /** Коэффициент масштабирования по оси Y */
+    scaleY: number;
+    /** Смещение по оси X */
+    offsetX: number;
+    /** Смещение по оси Y */
+    offsetY: number;
+}
+
+/**
+ * Режим масштабирования геометрии
+ */
+export type ScaleMode =
+    | 'fit' // сохранять aspect ratio, вписать полностью
+    | 'stretch'; // растянуть на весь viewport (может исказить пропорции)

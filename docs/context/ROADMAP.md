@@ -5,8 +5,8 @@
     - _MVP:_ пустой runnable app.
 
 2. **Этап 1 — Domain core (pure functions)**
-    - `generatePattern`, `patternToCommands`, типы, unit-тесты.
-    - _MVP:_ CLI/тест: генерируется pattern и команды (консольный вывод).
+    - `generatePattern`, `patternToCommands`, `commands`, `generateGeometry`, типы, unit-тесты.
+    - _MVP:_ тест: генерируется pattern, команды и геометрия.
 
 3. **Этап 2 — Sync UI + Canvas (end-to-end локально)**
     - `Form.vue`, `GeometryView.vue`, `geometryBuilder` → `VerticesArray`, Canvas renderer.

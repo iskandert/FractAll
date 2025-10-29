@@ -1,11 +1,36 @@
 <template>
-    <main>
-        <h1>FractAll</h1>
-        <p>Этап 1: Domain core (pure functions)</p>
-        <p>Для тестирования используйте CLI: <code>npm run dev:cli</code></p>
-    </main>
+    <div id="app-root">
+        <RouterView />
+    </div>
 </template>
 
 <script setup lang="ts">
-// Этап 1: UI компоненты будут добавлены на Этапе 2
+/**
+ * Корневой компонент приложения
+ *
+ * Использует Vue Router для навигации между страницами
+ */
 </script>
+
+<style>
+/* Глобальные стили и сброс */
+#app-root {
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+        sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+</style>

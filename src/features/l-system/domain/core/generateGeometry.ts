@@ -1,5 +1,5 @@
-import { Point } from '@/shared/types';
-import { GeometryBuilderParams, PathSegment, Command } from '../types';
+import { Point, BBox } from '@/shared/types';
+import { GeometryBuilderParams, PathSegment, Command, GeometryResult } from '../types';
 import { createPoint } from '@/shared/utils/geometry';
 import { normalizeDegrees } from '@/shared/utils/math';
 
@@ -75,6 +75,59 @@ class TurtleState {
 }
 
 /**
+ * Результат анализа геометрии
+ */
+interface GeometryMetrics {
+    bbox: BBox;
+    totalPoints: number;
+    uniquePoints: number;
+}
+
+/**
+ * Анализирует готовую геометрию (сегменты) и вычисляет метрики
+ */
+class GeometryAnalyzer {
+    /**
+     * Анализирует сегменты и возвращает метрики
+     */
+    static analyze(segments: PathSegment[]): GeometryMetrics {
+        let minX = Infinity;
+        let minY = Infinity;
+        let maxX = -Infinity;
+        let maxY = -Infinity;
+        let totalPoints = 0;
+        const uniquePoints = new Set<string>();
+
+        for (const segment of segments) {
+            for (const point of segment) {
+                // Подсчет точек
+                totalPoints++;
+                const key = `${point.x},${point.y}`;
+                uniquePoints.add(key);
+
+                // BBox
+                if (point.x < minX) minX = point.x;
+                if (point.x > maxX) maxX = point.x;
+                if (point.y < minY) minY = point.y;
+                if (point.y > maxY) maxY = point.y;
+            }
+        }
+
+        // Если не было точек, вернуть пустые метрики
+        const bbox: BBox =
+            totalPoints === 0
+                ? { minX: 0, minY: 0, maxX: 0, maxY: 0 }
+                : { minX, minY, maxX, maxY };
+
+        return {
+            bbox,
+            totalPoints,
+            uniquePoints: uniquePoints.size,
+        };
+    }
+}
+
+/**
  * Управление коллекцией сегментов пути
  */
 class SegmentManager {
@@ -131,7 +184,6 @@ class SegmentManager {
 class GeometryBuilderState {
     private turtle: TurtleState;
     private segments: SegmentManager;
-    private pointsCount: number = 0;
     private readonly maxPoints: number;
     private readonly minSegmentLength: number;
 
@@ -143,14 +195,21 @@ class GeometryBuilderState {
 
         // Инициализация первого сегмента
         this.segments.startSegment(this.turtle.getPosition());
-        this.pointsCount++;
     }
 
     /**
      * Проверяет достижение лимита точек
+     * Считает точки в текущих сегментах
      */
     private hasReachedMaxPoints(): boolean {
-        return this.pointsCount >= this.maxPoints;
+        let count = 0;
+        for (const segment of this.segments.getAllSegments()) {
+            count += segment.length;
+            if (count >= this.maxPoints) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -167,7 +226,6 @@ class GeometryBuilderState {
         const finishedSegment = this.segments.endCurrentSegment();
         if (finishedSegment && !this.isSegmentValid(finishedSegment)) {
             this.segments.removeSegment(finishedSegment);
-            this.pointsCount -= finishedSegment.length;
         }
     }
 
@@ -177,7 +235,6 @@ class GeometryBuilderState {
     private draw(distance: number): void {
         const nextPoint = this.turtle.moveForward(distance);
         this.segments.addPointToCurrentSegment(nextPoint);
-        this.pointsCount++;
     }
 
     /**
@@ -188,7 +245,6 @@ class GeometryBuilderState {
 
         const nextPoint = this.turtle.moveForward(distance);
         this.segments.startSegment(nextPoint);
-        this.pointsCount++;
     }
 
     /**
@@ -261,18 +317,27 @@ class GeometryBuilderState {
     }
 
     /**
-     * Возвращает построенную геометрию
+     * Возвращает построенную геометрию с метриками
      */
-    getResult(): PathSegment[] {
+    getResult(): GeometryResult {
         this.finalize();
-        return this.segments.getAllSegments();
+        
+        // Анализируем готовые сегменты один раз
+        const segments = this.segments.getAllSegments();
+        const metrics = GeometryAnalyzer.analyze(segments);
+        
+        return {
+            segments,
+            bbox: metrics.bbox,
+            pointsCount: metrics.totalPoints,
+        };
     }
 }
 
 /**
  * Строит геометрию на основе команд L-системы
  */
-export function generateGeometry(params: GeometryBuilderParams): PathSegment[] {
+export function generateGeometry(params: GeometryBuilderParams): GeometryResult {
     const state = new GeometryBuilderState(
         params.startPosition,
         params.startAngle,

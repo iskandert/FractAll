@@ -3,8 +3,9 @@
 Этот файл содержит только **нереализованные** типы данных, которые будут реализованы на последующих этапах.
 
 Реализованные типы находятся в:
-- `src/features/l-system/domain/types.ts` — Command, LSystemSettings, PathSegment, GeometryBuilderParams и др.
-- `src/shared/types/index.ts` — Point, Vector, BBox и др.
+- `src/features/l-system/domain/types.ts` — Command, LSystemSettings, PathSegment, GeometryBuilderParams, GeometryResult
+- `src/shared/types/index.ts` — Point, Vector, BBox, Viewport, RenderOptions, Transform
+- `src/shared/renderers/IRenderer.ts` — IRenderer интерфейс
 
 ---
 
@@ -124,19 +125,6 @@ export interface LSystemStoreState {
         | { current: LSystemResult | null }
         | { flatRef: { coords?: Float32Array | null; offsets?: Uint32Array | null } };
     // NOTE: implement resultRef as shallowRef in Pinia: shallowRef<LSystemResult | null>
-}
-```
-
----
-
-## IRenderer (Этап 2-5 - рендереры)
-
-```ts
-interface IRenderer {
-    renderFlat(fv: FlatVertices, viewport: { w: number; h: number }): void;
-    renderArray(vertices: PathSegment[], viewport: { w: number; h: number }): void;
-    reset(): void;
-    resize(w: number, h: number): void;
 }
 ```
 

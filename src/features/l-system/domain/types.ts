@@ -5,7 +5,7 @@
  * Все типы должны быть сериализуемыми (без функций внутри).
  */
 
-import type { Point } from '@/shared/types';
+import type { Point, BBox } from '@/shared/types';
 
 /**
  * Настройки L-системы
@@ -96,4 +96,16 @@ export interface GeometryBuilderParams {
     startPosition: Point;
     startAngle: number;
     minSegmentLength: number;
+}
+
+/**
+ * Результат построения геометрии
+ */
+export interface GeometryResult {
+    /** Массив сегментов пути */
+    segments: PathSegment[];
+    /** Ограничивающий прямоугольник */
+    bbox: BBox;
+    /** Количество точек */
+    pointsCount: number;
 }
