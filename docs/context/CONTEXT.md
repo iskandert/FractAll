@@ -10,7 +10,7 @@
 
 Ниже — подробное дерево файлов/папок проекта с комментариями **где что лежит и зачем**. Дерево отражает выбранную архитектуру: **чистые функции + «команды как данные»**, воркер-пайплайн, flat-буферы для heavy задач, Pinia с `shallowRef` и чёткими TS-контрактами/валидаторами.
 
-**Текущий статус:** ✅ **Этап 1 — Domain Core** завершен. Реализованы и протестированы все core функции: generatePattern, patternToCommands, commands, generateGeometry. Следующий этап — UI + Canvas. Многие модули отмечены как `[TODO]` и будут реализованы на последующих этапах.
+**Текущий статус:** ⏳ **Этап 2 — UI + Canvas** в процессе. Завершены подэтапы 2.1 (Router) и 2.2 (Renderer). Реализованы: generatePattern, patternToCommands, commands, generateGeometry (с BBox и метриками), IRenderer, CanvasPolylineRenderer, router, базовая страница. Многие модули отмечены как `[TODO]` и будут реализованы на последующих этапах.
 
 ```
 /README.md
@@ -18,14 +18,14 @@
   main.ts
   app.vue
   cli.ts                                     # CLI для тестирования на этапе 1
-  router/                                    # [TODO: этап 2]
-    index.ts
-    routes.ts
+  router/                                    # ✅ этап 2.1
+    index.ts                                 # инициализация router с createWebHistory
+    routes.ts                                # определение маршрутов
   features/
     l-system/
       index.ts                              # [TODO: этап 2] точка экспорта feature (service factory)
-      pages/                                # [TODO: этап 2]
-        main.vue
+      pages/                                # ✅ этап 2.1
+        main.vue                             # страница L-System с базовым layout
       components/                           # [TODO: этап 2]
         Form.vue
         GeometryView.vue
@@ -62,12 +62,13 @@
     utils/
       math.ts                                # математические функции
       geometry.ts                            # геометрические функции
+      canvas.ts                              # ✅ этап 2.2: canvas утилиты (transform, scale)
       uid.ts                                 # [TODO: этап 3] uuid helper
       buffer-utils.ts                        # [TODO: этап 5] helpers для FlatVertices / transfers
-    renderers/                              # [TODO: этап 2-5]
-      IRenderer.ts                           # интерфейс рендерера (render/reset/resize)
+    renderers/                              # ✅ этап 2.2
+      IRenderer.ts                           # интерфейс рендерера
       canvas/
-        CanvasPolylineRenderer.ts            # реализация для canvas (consumes FlatVertices or VerticesArray)
+        CanvasPolylineRenderer.ts            # реализация для canvas (PathSegment[] + BBox)
       webgl/
         WebGLRenderer.ts                      # (опционально) webgl renderer
       svg/
@@ -188,11 +189,12 @@ High-level фасад:
 
 ### `generateGeometry.ts`
 
-- Функция принимающая `GeometryBuilderParams` (содержит `Command[]`, настройки) и возвращающая `PathSegment[]` (массив сегментов пути, где каждый сегмент - массив точек).
+- Функция принимающая `GeometryBuilderParams` и возвращающая `GeometryResult` (segments, bbox, pointsCount).
 - Использует "черепашью графику": управляет позицией, углом, рисованием линий.
 - Поддерживает ветвление через стек состояний (команды push/pop).
-- Поддерживает `maxPoints` для ограничения количества точек и `minSegmentLength` для фильтрации слишком коротких сегментов.
-- Чистая архитектура: разделение на классы TurtleState, SegmentManager, GeometryBuilderState.
+- Поддерживает `maxPoints` для ограничения и `minSegmentLength` для фильтрации коротких сегментов.
+- `GeometryAnalyzer` вычисляет bbox и метрики один раз в конце.
+- Чистая архитектура: TurtleState, SegmentManager, GeometryBuilderState, GeometryAnalyzer.
 
 ### `normalizer.ts` [TODO: этап 5]
 
@@ -204,10 +206,9 @@ High-level фасад:
 
 Центральный файл с TS контрактами:
 
-- `LSystemSettings`, `Alias`, `HandlerDef`
-- `Command` discriminated union
-- `FlatVertices`, `VerticesArray`, `LSystemResult`, `WorkerRequest/Response` types
-  **Комментарий:** эти типы импортируются и в воркер, и в main thread, и в Pinia — это единая правда. Сделайте файл маленьким и экспортируемым.
+- `LSystemSettings`, `Command` (discriminated union)
+- `PathSegment`, `GeometryBuilderParams`, `GeometryResult`
+  **Комментарий:** эти типы импортируются везде — это единая правда.
 
 ---
 
@@ -277,7 +278,7 @@ Actions:
 
 ## `src/shared/types` и `src/features/l-system/domain/types.ts`
 
-`shared/types` — общие сущности проекта (Point, BBox, Vector), `domain/types.ts` — feature-specific. Это уменьшит дублирование.
+`shared/types` — общие сущности проекта (Point, BBox, Vector, Viewport, Transform, RenderOptions, ScaleMode), `domain/types.ts` — feature-specific. Это уменьшит дублирование.
 
 ---
 

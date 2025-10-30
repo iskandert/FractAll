@@ -4,8 +4,8 @@
 
 Реализованные типы находятся в:
 - `src/features/l-system/domain/types.ts` — Command, LSystemSettings, PathSegment, GeometryBuilderParams, GeometryResult
-- `src/shared/types/index.ts` — Point, Vector, BBox, Viewport, RenderOptions, Transform
-- `src/shared/renderers/IRenderer.ts` — IRenderer интерфейс
+- `src/shared/types/index.ts` — Point, Vector, BBox, Viewport, RenderOptions, Transform, ScaleMode
+- `src/shared/renderers/IRenderer.ts` — IRenderer
 
 ---
 

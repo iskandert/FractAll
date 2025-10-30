@@ -2,7 +2,7 @@
 
 Веб-приложение для генерации и визуализации L-систем (фракталов).
 
-**Текущий статус:** ✅ Этап 1 завершен — Domain Core реализован и протестирован
+**Текущий статус:** ⏳ Этап 2 в процессе — UI + Canvas Renderer (2.1 и 2.2 завершены)
 
 ## Быстрый старт
 
@@ -16,7 +16,7 @@ npm run dev:cli
 # Запуск тестов
 npm run test
 
-# Веб-приложение (на этапе 1 - заглушка)
+# Веб-приложение
 npm run dev
 ```
 
@@ -34,6 +34,7 @@ npm run dev
 ## Стек
 
 - **Core:** Vue 3, TypeScript, Vite
+- **UI:** PrimeVue, Vue Router
 - **Валидация:** Zod
 - **Тесты:** Vitest
 - **Code Quality:** ESLint, Prettier
@@ -52,9 +53,12 @@ npm run dev
    - ✅ generatePattern (L-system переписывание)
    - ✅ patternToCommands (паттерн → команды)
    - ✅ CommandFactory и утилиты команд
-   - ✅ generateGeometry (команды → геометрия)
+   - ✅ generateGeometry (команды → геометрия с BBox)
    - ✅ Unit-тесты для всех модулей
-3. ⏳ **Этап 2** — Sync UI + Canvas (следующий)
+3. ⏳ **Этап 2** — Sync UI + Canvas (в процессе)
+   - ✅ 2.1: Router и страничная структура
+   - ✅ 2.2: Renderer инфраструктура (IRenderer, CanvasPolylineRenderer)
+   - ⏳ 2.3: GeometryView компонент (следующий)
 4. ⏳ **Этап 3** — Pinia store + persistence
 5. ⏳ **Этап 4** — WebWorker integration
 6. ⏳ **Этап 5** — FlatBuffers & fast renderer
